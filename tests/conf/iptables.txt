@@ -1,0 +1,25 @@
+echo 1 >/proc/sys/net/ipv4/ip_forward
+
+# Flushing tables and zeroing stats
+iptables -F -t filter
+iptables -F -t nat
+iptables -F -t mangle
+iptables -F -t raw
+iptables -X -t filter
+iptables -X -t nat
+iptables -X -t mangle
+iptables -X -t raw
+iptables -Z -t filter
+iptables -Z -t nat
+iptables -Z -t mangle
+iptables -Z -t raw
+
+# Setting default policy as DROP
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+
+
+# MASQUERADE
+iptables -t nat -A POSTROUTING -o $EXT_IF -j MASQUERADE

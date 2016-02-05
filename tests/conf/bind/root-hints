@@ -1,0 +1,47 @@
+
+; <<>> DiG 9.7.3 <<>> ns . @a.root-servers.net
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 10638
+;; flags: qr aa rd; QUERY: 1, ANSWER: 13, AUTHORITY: 0, ADDITIONAL: 14
+;; WARNING: recursion requested but not available
+
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			518400	IN	NS	g.root-servers.net.
+.			518400	IN	NS	f.root-servers.net.
+.			518400	IN	NS	l.root-servers.net.
+.			518400	IN	NS	i.root-servers.net.
+.			518400	IN	NS	b.root-servers.net.
+.			518400	IN	NS	d.root-servers.net.
+.			518400	IN	NS	c.root-servers.net.
+.			518400	IN	NS	m.root-servers.net.
+.			518400	IN	NS	j.root-servers.net.
+.			518400	IN	NS	k.root-servers.net.
+.			518400	IN	NS	e.root-servers.net.
+.			518400	IN	NS	h.root-servers.net.
+.			518400	IN	NS	a.root-servers.net.
+
+;; ADDITIONAL SECTION:
+g.root-servers.net.	3600000	IN	A	192.112.36.4
+f.root-servers.net.	3600000	IN	A	192.5.5.241
+f.root-servers.net.	3600000	IN	AAAA	2001:500:2f::f
+l.root-servers.net.	3600000	IN	A	199.7.83.42
+l.root-servers.net.	3600000	IN	AAAA	2001:500:3::42
+i.root-servers.net.	3600000	IN	A	192.36.148.17
+i.root-servers.net.	3600000	IN	AAAA	2001:7fe::53
+b.root-servers.net.	3600000	IN	A	192.228.79.201
+d.root-servers.net.	3600000	IN	A	128.8.10.90
+d.root-servers.net.	3600000	IN	AAAA	2001:500:2d::d
+c.root-servers.net.	3600000	IN	A	192.33.4.12
+m.root-servers.net.	3600000	IN	A	202.12.27.33
+m.root-servers.net.	3600000	IN	AAAA	2001:dc3::35
+j.root-servers.net.	3600000	IN	A	192.58.128.30
+
+;; Query time: 50 msec
+;; SERVER: 198.41.0.4#53(198.41.0.4)
+;; WHEN: Thu Mar  8 04:09:01 2012
+;; MSG SIZE  rcvd: 512
+

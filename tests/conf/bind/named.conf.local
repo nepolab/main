@@ -1,0 +1,43 @@
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+view "internal" {
+
+match-clients { 192.168.254.0/24; 127.0.0.0/8; } ;
+recursion yes;
+
+zone "internal.tld" {
+type master;
+file "/etc/bind/internal.tld-forward";
+allow-transfer { key "rndc-key"; };
+allow-update { key "rndc-key"; };
+allow-query { any; };
+};
+
+zone "254.168.192.in-addr.arpa" {
+type master;
+file "/etc/bind/internal.tld-reverse";
+allow-transfer { key "rndc-key"; };
+allow-update { key "rndc-key"; };
+allow-query { any; };
+};
+
+// prime the server with knowledge of the root servers
+zone "." {
+type hint;
+file "/etc/bind/root-hints";
+};
+
+};
+
+view "outside" {
+
+match-clients { any ; !192.168.254.0/24 ; !127.0.0.0/8 ; };
+recursion no;
+
+};

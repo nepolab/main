@@ -1,0 +1,25 @@
+#!/bin/bash
+sysctl -w net.ipv4.ip_forward=1
+sysctl -w net.ipv4.ip_local_port_range="1024 32768"
+sysctl -w net.ipv4.conf.all.arp_ignore=1
+sysctl -p
+
+fw="/etc/rc.d/rc.firewall"
+if !$fw { touch /etc/rc.d/rc.firewall }
+fi
+
+echo "ipt=""/usr/sbin/iptables""" >> /etc/rc.d/rc.firewall
+echo "$ipt -F -t filter" >> /etc/rc.d/rc.firewall
+echo "$ipt -F -t nat" >> /etc/rc.d/rc.firewall
+echo "$ipt -F -t mangle" >> /etc/rc.d/rc.firewall
+echo "" >> /etc/rc.d/rc.firewall
+echo "$ipt -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 1" >> /etc/rc.d/rc.firewall
+echo "$ipt -t mangle -A POSTROUTING -s 192.168.254.0/24 -o eth0 -j TTL --ttl-set 64" >> /etc/rc.d/rc.firewall
+echo "$ipt -t nat -I POSTROUTING -o eth0 -j MASQUERADE" >> /etc/rc.d/rc.firewall
+echo "" >> /etc/rc.d/rc.firewall
+echo "$ipt -A INPUT -i eth0 -p tcp --dport 22 -j DROP" >> /etc/rc.d/rc.firewall
+echo "" >> /etc/rc.d/rc.firewall
+
+echo "/etc/rc.d/rc.firewall" >> /etc/rc.d/rc.local
+
+echo "TTL Filter Bypass Installed !"

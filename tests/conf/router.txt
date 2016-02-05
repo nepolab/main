@@ -1,0 +1,133 @@
+#!/bin/sh
+ 
+#ZADAVANE NA KONSTANTITE
+ 
+li="eth2"                    #lan interfeis
+la="192.168.xxx.1"           #lan adres
+ii="eth1"                    #internet interfeis
+ia="xxx.xxx.xxx.xxx"         #internet adres
+lo="lo"                      #loopback
+ca="10.0.0.0/8"              #mreja A-klas
+cb="172.16.0.0/12"           #mreja B-klas
+cc="192.168.0.0/16"          #mreja C-klas
+cd="224.0.0.0/4"             #mreja D-klas
+ce="240.0.0.0/5"             #rezervna mreja
+I="/sbin/iptables"           #iptables :)
+zp="1024:65535"              #zabraneni portove
+ftp="0.0.0.0"		     #ftp ip
+ 
+ 
+#SETVANE NA POLITIKATA
+ 
+$I -P INPUT DROP
+$I -P OUTPUT DROP
+$I -P FORWARD DROP
+ 
+#FTP
+ 
+$I -A INPUT -i $ii -p TCP -m state --state ESTABLISHED,RELATED  --sport 21 --dport $zp  -s 0/0  -d $ia  -j ACCEPT
+$I -A OUTPUT -o $ii  -p TCP -m state --state NEW,ESTABLISHED  --sport  $zp  --dport 21 -s $ia -d 0/0  -j ACCEPT
+$I -A INPUT -i $ii -p TCP -m state --state NEW --sport 20 --dport $zp -s 0/0 -d $ia -j ACCEPT
+$I -A OUTPUT -o $ii -p TCP -m state --state ESTABLISHED,RELATED  --sport $zp --dport 20 -s $ia -d 0/0 -j ACCEPT
+$I -A INPUT -i $ii -p TCP -m state --state ESTABLISHED,RELATED --sport $zp --dport $zp -s 0/0 -d $ia -j ACCEPT
+$I -A OUTPUT -o $ii -p TCP -m state --state NEW,ESTABLISHED  --sport $zp --dport $zp -s $ia -d 0/0 -j ACCEPT
+ 
+                                #AKO IMA MASKIRANE
+ 
+$I -A FORWARD -p TCP -s $cc --sport $zp --dport 20:21 -j ACCEPT
+$I -A FORWARD -p TCP -d $cc --sport 20:21 --dport $zp -j ACCEPT
+$I -A FORWARD -p TCP -s $cc --sport $zp --dport $zp -j ACCEPT
+$I -A FORWARD -p TCP -d $cc --sport $zp --dport $zp -j ACCEPT
+ 
+ 
+#HTTP
+ 
+$I -A OUTPUT -o $ii -p TCP  --sport $zp --dport 80 -s $ia -d 0/0 -j ACCEPT
+$I -A INPUT -i $ii -p TCP -m state --state ESTABLISHED,RELATED  --sport 80 --dport $zp -s 0/0 -d $ia -j ACCEPT
+                            #AKO IMA MASKIRANE
+ 
+$I -A FORWARD -p TCP -s $cc --sport $zp --dport 80 -j ACCEPT
+$I -A FORWARD -p TCP -d $cc --sport 80 --dport $zp -j ACCEPT
+ 
+#HTTPS
+ 
+$I -A OUTPUT -o $ii -p TCP  --sport $zp --dport 443 -s $ia -d 0/0 -j ACCEPT
+$I -A INPUT -i $ii -p TCP -m state --state ESTABLISHED,RELATED  --sport 443 --dport $zp -s 0/0 -d $ia -j ACCEPT
+                            #AKO IMA MASKIRANE
+ 
+$I -A FORWARD -p TCP -s $cc --sport $zp --dport 443 -j ACCEPT
+$I -A FORWARD -m state --state ESTABLISHED,RELATED -p TCP -d $cc  --sport 443 --dport $zp -j ACCEPT
+ 
+#TRACEROUTE
+ 
+$I -A OUTPUT -o $ii -p UDP --sport 32769:65535  --dport 33434:33523  -s $ia -d 0/0 -j ACCEPT
+                           #AKO IMA MASKIRANE
+ 
+$I -A FORWARD -p UDP -s $cc --sport 32769:65535  --dport 33434:33523 -j ACCEPT
+$I -A FORWARD -p UDP -d $cc --sport 33434:33523  --dport 32769:65535 -j ACCEPT
+ 
+ 
+#ICQ
+ 
+$I -A INPUT -p tcp -s 0/0 --destination-port 5000:5100 -j ACCEPT
+$I -A OUTPUT -o $ii -p UDP  --sport $zp --dport 4000 -s $ia -d 0/0 -j ACCEPT
+$I -A INPUT -i $ii -p UDP  --sport 4000 --dport $zp -s 0/0 -d $ia -j ACCEPT
+                          #AKO IMA MASKIRANE
+ 
+$I -A FORWARD -p UDP -s $cc --sport $zp --dport 4000 -j ACCEPT
+$I -A FORWARD -p UDP -d $cc --sport 4000 --dport $zp -j ACCEPT
+ 
+#PRAVILATA
+ 
+$I -A INPUT -i $lo -j ACCEPT
+$I -A OUTPUT -o $lo -j ACCEPT
+$I -t nat -A POSTROUTING -s $cc -o $ii -j SNAT  --to $ia
+$I -A INPUT -i $li -s $cc -j ACCEPT
+$I -A OUTPUT -o $li -d $cc -j ACCEPT
+ 
+#SPOOFED PACKETS
+ 
+$I -A INPUT -i $ii -s $ia -j DROP
+$I -A INPUT -i $ii -s $ca -j DROP
+$I -A INPUT -i $ii -d $ca -j DROP
+$I -A OUTPUT -o $ii -s $ca -j DROP
+$I -A OUTPUT -o $ii -s $ca -j DROP
+$I -A INPUT -i $ii -s 127.0.0.0/8 -j DROP
+$I -A OUTPUT -o $ii -s $127.0.0.0/8 -j DROP
+$I -A INPUT -i $ii -s 255.255.255.255 -j DROP
+$I -A INPUT -i $ii -d 0.0.0.0  -j DROP
+$I -A OUTPUT -o $ii -s 255.255.255.255 -j DROP
+$I -A OUTPUT -o $ii -d 0.0.0.0  -j DROP
+$I -A INPUT -i $ii -s $cd -j DROP
+$I -A OUTPUT -o $ii -s $cd -j DROP
+$I -A INPUT -i $ii -s $ce -j DROP
+$I -A OUTPUT -o $ii -d $ce -j DROP
+$I -A FORWARD -p tcp --syn -m limit --limit 1/s -j ACCEPT
+$I -A FORWARD -p tcp --tcp-flags SYN,ACK,FIN,RST RST -m limit --limit 1/s -j ACCEPT
+$I -A FORWARD -p icmp --icmp-type echo-request -m limit --limit 1/s -j ACCEPT
+$I -A FORWARD -i $ii -m state ! --state NEW -j DROP
+ 
+# PPTP
+ 
+#$I -A OUTPUT -o $EXTERNAL_INTERFACE -p TCP  --sport $UNPRIVPORTS --dport 1723 -s $EXTERNAL_IP -d $ANYWHERE -j ACCEPT
+#$I -A INPUT -i $EXTERNAL_INTERFACE -p TCP  --sport 1723 --dport $zp -s 0/0 -d $ia  -m state --state ESTABLISHED,RELATED -j ACCEPT
+#iptables -A INPUT -i $EXTERNAL_INTERFACE -p 47 -j ACCEPT
+#iptables -A OUTPUT -o $EXTERNAL_INTERFACE -p 47 -j ACCEPT
+                          #AKO IMA MASKIRANE
+ 
+#iptables -A INPUT -i $INTERNAL_INTERFACE -p 47 -j ACCEPT
+#iptables -A OUTPUT -o $INTERNAL_INTERFACE -p 47 -j ACCEPT\
+#iptables -A FORWARD -p TCP -s $INTERNAL_NETWORK  --sport $UNPRIVPORTS --dport 1723 -j ACCEPT
+#iptables -A FORWARD -p TCP -d $INTERNAL_NETWORK  -m state --state ESTABLISHED,RELATED  --sport 1723 --dport $UNPRIVPORTS -j ACCEPT
+#iptables -A FORWARD -p 47 -s $INTERNAL_NETWORK -j ACCEPT
+#iptables -A FORWARD -p 47 -d $INTERNAL_NETWORK -j ACCEPT
+ 
+#KIRIIKI :)
+/usr/bin/echo "1" &gt; /proc/sys/net/ipv4/conf/all/secure_redirects
+/usr/bin/echo "1" &gt;/proc/sys/net/ipv4/conf/eth0/rp_filter
+/usr/bin/echo "0" &gt; /proc/sys/net/ipv4/conf/all/accept_source_route
+/usr/bin/echo "0" &gt; /proc/sys/net/ipv4/conf/all/accept_redirects
+ 
+#UP NA INTERFEISITE
+/sbin/ifconfig eth1 up
+/sbin/ifconfig eth2 up

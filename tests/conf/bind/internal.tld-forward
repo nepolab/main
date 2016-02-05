@@ -1,0 +1,24 @@
+; BIND db file for internal.tld
+; Време на живот по подразбиране
+$TTL 86400
+ 
+; Запис който ни дефинира като собственици на домейна
+@       IN      SOA     noroute2host.internal.tld.      root. (
+                        2012030801     ; serial number YYMMDDNN
+                        28800           ; Refresh
+                        7200            ; Retry
+                        864000          ; Expire
+                        86400           ; Min TTL
+                        )
+                ; нашият DNS. Това е glue запис
+                NS      noroute2host.internal.tld.
+ 
+; ако името не е пълно специфицирано добави това
+$ORIGIN internal.tld.
+ 
+noroute2host  IN      A       192.168.254.1
+; псевдоним на нашият рутер
+router IN CNAME noroute2host
+ns1    IN CNAME noroute2host
+www    IN CNAME noroute2host
+
